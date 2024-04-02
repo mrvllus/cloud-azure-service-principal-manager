@@ -1,0 +1,54 @@
+trigger: none
+pr: none
+
+parameters:
+#Beta Parms
+  - name: ServiceConnection
+    type: string
+    default: PipelineServices-dev
+
+  - name: TFStorageAccount
+    type: string
+    default: terraformbackend41db0083
+
+resources:
+  repositories:
+    - repository: AzureTerraformState
+      type: git
+      name: CPT/AzureTerraformState
+      ref:  beta
+
+stages:
+  - stage: KRS_Deploy_MI
+    displayName: KRS Deploy Managed Identity
+  
+    variables:
+    - group: krs-global
+  
+    jobs:
+    - template: continuous-deployment-terraform.yml@AzureTerraformState
+      parameters:
+        serviceConnection:           ${{ parameters.ServiceConnection }}
+
+        TfVars:
+          TF_AZ_REGION_NAME:         $(AZ_REGION_NAME)
+          TF_AZ_RESOURCE_GROUP_NAME: $(AZ_RESOURCE_GROUP_NAME)
+          TF_AZ_LOG_SUBSCRIPTION_ID: $(AZ_LOG_SUBSCRIPTION_ID)
+
+        #Environment settings
+        environment:                 global
+        displayName:                 cd-krs-managed-identity
+        jobName:                     cd_krs_managed_identity
+
+        #Terraform settings
+        backendFileName:             krs-global-mi.tfstate
+        directoryToExecute:          src/ServicePrincipalRotation/devops/terraform/managed-identity
+        storageAccountName:          ${{ parameters.TFStorageAccount }}
+
+        #Service Now Configuration
+        applicationDeploymentName:   KRS-Global-MI
+        applicationServiceName:      Azure - Cloud Platforms-Sandbox
+        
+        #Azure settings
+        appResourceGroupName:        default-easus-rg # use this param when testing custom resource group
+        deployRegion:                eastus #use this param when using multi-region

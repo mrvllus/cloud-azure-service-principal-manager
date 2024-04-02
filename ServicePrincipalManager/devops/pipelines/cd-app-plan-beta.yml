@@ -1,0 +1,48 @@
+trigger: none
+pr: none
+
+parameters:
+  - name: ServiceConnection
+    type: string
+    default: PipelineServicesBeta-dev
+
+  - name: TFStorageAccount
+    type: string
+    default: terraformbackendaf731d5f
+
+  - name: AppServicePlanName
+    type: string
+    default: linux-p1v2-ap
+
+resources:
+  repositories:
+    - repository:   AzureTerraformState
+      type:         git
+      name:         CPT/AzureTerraformState
+      ref:          beta
+
+stages:
+  - stage: DefaultAppPlanDeploy
+    displayName: Default App Plan Deploy
+    
+    jobs:
+    - template: continuous-deployment-terraform.yml@AzureTerraformState
+      parameters:
+        serviceConnection: ${{ parameters.ServiceConnection }}  
+
+        TfVars:
+          TF_APP_PLAN_NAME: ${{ parameters.AppServicePlanName }}
+
+        # Environment settings
+        environment: beta
+        jobName: cd_devops_key_rotation_app_plan
+        displayName: cd-devops-key-rotation-app-plan
+
+        # Terraform settings
+        backendFileName: krs-appServicePlan.tfstate
+        storageAccountName: ${{ parameters.TFStorageAccount }}
+        directoryToExecute: src/ServicePrincipalRotation.Core/devops/terraform/app-service-plan
+
+        # Service Now
+        applicationServiceName: Azure - Cloud Platforms-Sandbox
+        applicationDeploymentName: KRS_App_Srv_Plan

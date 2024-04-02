@@ -1,0 +1,99 @@
+trigger: none
+pr: none
+
+parameters:
+  - name: ServiceConnection
+    type: string
+    default: PipelineServicesBeta-dev
+
+  - name: TFStorageAccount
+    type: string
+    default: terraformbackendaf731d5f
+
+  - name: AppServicePlanName
+    type: string
+    default: linux-p1v2-ap
+
+  - name: ManagedIdentityName
+    type: string
+    default: krs-phazrv-mi
+
+  - name: ManagedIdentityId
+    type: string
+    default: 7d7c099a-ed5a-464f-8a63-ac18c00d67bc
+
+resources:
+  repositories:
+   - repository: AzureTerraform
+     type:       git
+     name:       CPT/AzureTerraformState
+     ref:        beta
+  pipelines:
+    - pipeline:    CIPipeline
+      source:      ci-krs-function-app
+
+variables:
+  - group: KRS-Beta
+
+stages:
+   - stage: KRS_Beta_Default_Deploy
+     displayName: Deploy KRS to Beta Default RG
+
+     jobs:
+        - template: continuous-deployment-terraform.yml@AzureTerraform
+          parameters:
+             serviceConnection:                        ${{ parameters.ServiceConnection }}
+
+             #Environment settings
+             environment:                              beta
+             jobName:                                  KRS_Deploy_Beta
+             displayName:                              Deploy KRS Azure Beta
+             
+             TfVars:
+               TF_AZ_APP_INSIGHTS_LOG_ANALYTICS_NAME:  $(AZ_APP_INSIGHTS_LOG_ANALYTICS_NAME)
+               TF_AZ_APP_SERVICE_PLAN_NAME:            ${{ parameters.AppServicePlanName }}
+               TF_AZ_FUNC_NAME:                        $(KRS_FUNC_APP_NAME)
+               TF_AZ_LOG_SUBSCRIPTION_ID:              $(AZ_LOG_SUBSCRIPTION_ID)
+               TF_AZ_REGION_NAME:                      $(AZ_REGION_NAME)
+               TF_AZ_RESOURCE_GROUP_NAME:              $(AZ_RESOURCE_GROUP_NAME)
+               TF_AZ_SUB_PROVISION_TAG:                $(AZ_SUB_PROVISION_TAG)
+               TF_AZ_SUBNET_NAME:                      $(AZ_SUBNET_NAME)
+               TF_AZ_TENANT_ID:                        $(AZ_TENANT_ID)
+               TF_REQ_STORAGE_ACCOUNT:                 $(REQ_STORAGE_ACCOUNT)
+
+               #KRS
+               TF_AZURECREATION_KV_NAME:               $(AZURECREATION_KV_NAME)
+               TF_DEVOPS_API_URL:                      $(DEVOPS_API_URL)
+               TF_DEVOPS_PAT_KV_SECRET_NAME:           $(DEVOPS_PAT_KV_SECRET_NAME)
+               TF_IS_TEST:                             $(IS_TEST)
+               TF_KRS_AUTO_TAKE:                       $(KRS_AUTO_TAKE)
+               TF_KRS_AUTO_BATCH:                      $(KRS_AUTO_BATCH)
+               TF_MANAGED_IDENTITY_CLIENT_ID:          ${{ parameters.ManagedIdentityId }}
+               TF_MANAGED_IDENTITY_NAME:               ${{ parameters.ManagedIdentityName }}
+               TF_SECRET_EXP_OFFSET:                   $(SECRET_EXP_OFFSET)
+               TF_SNOWFLAKE_KV_NAME:                   $(SNOWFLAKE_KV_NAME)
+               TF_KRS_SRV_PRINC_CLIENT_ID:             $(KRS_SRV_PRINC_CLIENT_ID)
+               TF_KRS_SRV_PRINC_KV_SECRET_NAME:        $(KRS_SRV_PRINC_KV_SECRET_NAME)
+               TF_KRS_APPROVED_TAG:                    $(KRS_APPROVED_TAG)
+
+             #Terraform settings
+             backendFileName:                          $(TFStateFileName)
+             storageAccountName:                       ${{ parameters.TFStorageAccount }}
+             directoryToExecute:                       $(KRS_DIRECTORY_TO_EXECUTE)
+             
+             # Service Now Configuration           
+             applicationServiceName:                   Azure - Cloud Platforms-Sandbox
+             applicationDeploymentName:                KRS-Beta
+
+             artifactDirectory:                        $(ArtifactsDirectoryName)
+             artifactPipelineId:                       $(resources.pipeline.CIPipeline.pipelineID)
+             artifactBuildId:                          $(resources.pipeline.CIPipeline.runID)
+             artifactProjectId:                        $(resources.pipeline.CIPipeline.projectID)
+
+             #Azure settings
+             appResourceGroupName:                     default-easus-rg # use this param when testing custom resource group
+             deployRegion:                             eastus #use this param when using multi-region
+
+             appName:                                  $(KRS_FUNC_APP_NAME)
+             appType:                                  functionAppLinux
+             package:                                  $(Pipeline.Workspace)/drop/ServicePrincipalRotation.zip

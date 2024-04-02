@@ -1,0 +1,9 @@
+﻿global using Ardalis.GuardClauses;
+global using AzRbFuncs.Models;
+global using Azure.Identity;
+global using Microsoft.ApplicationInsights;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.Azure.Functions.Worker;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Options;
