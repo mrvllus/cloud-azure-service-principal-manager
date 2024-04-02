@@ -1,5 +1,6 @@
 ﻿using Ardalis.GuardClauses;
 using Microsoft.ApplicationInsights;
+using Microsoft.Graph.Models;
 using Microsoft.IdentityModel.Abstractions;
 
 namespace ServicePrincipalManager.Services;
@@ -9,11 +10,11 @@ public class ServicePrincipalService(KeyVaultService keyVaultService,
     IOptions<ServicePrincipalMgrOptions> options)
 {
     private readonly ServicePrincipalMgrOptions _spOptions = options.Value;
-    public async Task ManageSecretsAsync(string appId, string logPrefix)
+    public async Task ManageSecretsAsync(Application appRegistration, string logPrefix)
     {
         try
         {
-            Guard.Against.NullOrEmpty(appId, nameof(appId));
+            Guard.Against.Null(appRegistration, nameof(appRegistration));
 
             /*
              * 1. Check clientId exists in snowmageddon
