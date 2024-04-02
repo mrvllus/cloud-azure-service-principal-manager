@@ -3,7 +3,9 @@
     "ServicePrincipalManager": {
       "commandName": "Project",
       "commandLineArgs": "--port 7084",
-      "launchBrowser": false
+      "environmentVariables": {
+        "AZURE_TENANT_ID": "9f914513-dda8-4d64-98a0-2d902b23352f"
+      }
     }
   }
 }

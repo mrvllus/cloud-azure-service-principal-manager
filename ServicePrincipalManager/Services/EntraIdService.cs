@@ -40,46 +40,41 @@ public class EntraIdService(TelemetryClient telemetryClient, IOptions<ServicePri
     //    }
     //}
 
-    public async Task CreateAppRegistrationSecretAsync(Application app, string logPrefix)
-    {
-        try
-        {
-            var isTest = bool.Parse(_spOptions.IsTest);
+    //public async Task<PasswordCredential> CreateAppRegistrationSecretAsync(Application app, string logPrefix)
+    //{
+    //    try
+    //    {
+    //        var requestBody = new Microsoft.Graph.Applications.Item.AddPassword.AddPasswordPostRequestBody
+    //        {
+    //            PasswordCredential = new PasswordCredential
+    //            {
+    //                DisplayName = $"{app.DisplayName}-secret-key",
+    //                EndDateTime = DateTime.UtcNow.AddDays(double.Parse(_spOptions.SecretExpOffset)),
+    //                StartDateTime = DateTime.UtcNow,
+    //            }
+    //        };
 
-            var requestBody = new Microsoft.Graph.Applications.Item.AddPassword.AddPasswordPostRequestBody
-            {
-                PasswordCredential = new PasswordCredential
-                {
-                    DisplayName = $"{app.DisplayName}-secret-key",
-                    EndDateTime = DateTime.UtcNow.AddDays(double.Parse(_spOptions.SecretExpOffset)),
-                    StartDateTime = DateTime.UtcNow,
-                }
-            };
+    //        var isTest = bool.Parse(_spOptions.IsTest);
+    //        if (!isTest)
+    //        {
+    //            CreateGraphCreds();
+    //            var newPwdCred = await _msGraphClient.Applications[$"{app.AppId}"].AddPassword.PostAsync(requestBody);
+    //            Guard.Against.NullOrEmpty(newPwdCred.KeyId, nameof(newPwdCred.KeyId));
 
-            if (!isTest)
-            {
-                CreateGraphCreds();
-                var newPwdCred = await _msGraphClient.Applications[$"{app.AppId}"].AddPassword.PostAsync(requestBody);
-                Guard.Against.NullOrEmpty(newPwdCred.KeyId, nameof(newPwdCred.KeyId));
+    //            telemetryClient.TrackTrace($"{logPrefix}|{nameof(CreateAppRegistrationSecretAsync)} " +
+    //                $"Displayname: {app.DisplayName}, Hint({newPwdCred.Hint}), " +
+    //                $"Id:{newPwdCred.KeyId}");
 
-                telemetryClient.TrackTrace($"{logPrefix}|{nameof(CreateAppRegistrationSecretAsync)} " +
-                    $"Displayname: {app.DisplayName}, Hint({newPwdCred.Hint}), " +
-                    $"Id:{newPwdCred.KeyId}");
-            }
-            else
-            {
-                telemetryClient.TrackTrace($"{logPrefix}|{nameof(CreateAppRegistrationSecretAsync)} " +
-                    $"(LOG ONLY) Displayname:{app.DisplayName}, Hint(TEST-HINT), " +
-                    $"Id: TEST-ID");
-            }
-        }
-        catch (Exception ex)
-        {
-            telemetryClient.TrackTrace($"{logPrefix}|{nameof(CreateAppRegistrationSecretAsync)} " +
-                $"ERROR - " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message));
-            throw;
-        }
-    }
+    //            return newPwdCred;
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        telemetryClient.TrackTrace($"{logPrefix}|{nameof(CreateAppRegistrationSecretAsync)} " +
+    //            $"ERROR - " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message));
+    //        throw;
+    //    }
+    //}
 
     public async Task<Application> GetAppRegistrationAsync(string appId, string logPrefix)
     {
